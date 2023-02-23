@@ -9,7 +9,7 @@ using System.Text;
 
 namespace Othello
 {
-    class Program
+    public class Program
     {
         public static void Main()
 

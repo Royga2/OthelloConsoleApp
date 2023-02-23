@@ -9,7 +9,7 @@ namespace Othello
     {
         private readonly int r_Row;
         private readonly int r_Col;
-        private eColor m_CurrentColor;
+        private Player.eColor m_CurrentColor;
 
 
         public Cell(int i_Row, int i_Col)
@@ -34,7 +34,7 @@ namespace Othello
             }
         }
       
-        public eColor CurrentColor
+        public Player.eColor CurrentColor
         {
             get{ return m_CurrentColor; }
             set{ m_CurrentColor = value; }
@@ -42,14 +42,16 @@ namespace Othello
        
         public override bool Equals(object i_Obj)
         {
-            if(i_Obj is Cell other)
+            bool isEquals = false;
+
+            if (i_Obj is Cell other)
             {
-                return r_Row == other.Row && r_Col == other.Col;
+                isEquals = r_Row == other.Row && r_Col == other.Col;
             }
 
-            return false;
+            return isEquals;
         }
-       
+
         public override int GetHashCode()
         {
             return 8 * r_Row + r_Col;

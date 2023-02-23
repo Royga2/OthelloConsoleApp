@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Othello
 {
-    class GameManager
+    public class GameManager
     {
         private readonly Player r_Player1;
         private readonly Player r_Player2;
@@ -24,7 +24,7 @@ namespace Othello
             Console.WriteLine(@"Hello and welcome to our Othello console game! :)
 ");
             Console.ResetColor();
-            r_Player1 = new Player();
+            r_Player1 = new Player(setPlayerName());
             Console.Clear();
             Console.WriteLine(
                 @"Thank you {0}!
@@ -34,23 +34,11 @@ press 0 for PvP game or 1 to play against the Machine",
                 r_Player1.PlayerName);
             bool isComputer = inputGameMode();
             Console.Clear();
-            r_Player2 = new Player(r_Player1.PlayerColor, isComputer);
-            m_GameBoard = new Board(r_Player1.PlayerName, r_Player2.PlayerName);
-            m_CurrentPlayer = r_Player1.PlayerColor == eColor.Black ? r_Player1 : r_Player2;
+            r_Player2 = new Player(setPlayerName(), r_Player1.PlayerColor, isComputer);
+            m_GameBoard = new Board(GetValidBoardSize(), r_Player1.PlayerName, r_Player2.PlayerName);
+            m_CurrentPlayer = r_Player1.PlayerColor == Player.eColor.Black ? r_Player1 : r_Player2;
             m_PlayerLegalMove = findLegalMoves(m_CurrentPlayer);
             PlayGame();
-        }
-
-        //for test purpeses
-        public GameManager(string i_Player1Name)
-        {
-            r_Player1 = new Player(i_Player1Name, eColor.Black);
-            r_Player2 = new Player(eColor.Black, true);
-            m_CurrentPlayer = r_Player1;
-            m_GameBoard = new Board(6, r_Player1.PlayerName, r_Player2.PlayerName);
-            m_PlayerLegalMove = findLegalMoves(m_CurrentPlayer);
-            PlayGame();
-            
         }
 
         public bool GameOver
@@ -128,7 +116,7 @@ Bye-Bye :)");
                     int currentBoardSize = m_GameBoard.BoardSize;
                     m_GameBoard = new Board(currentBoardSize, r_Player1.PlayerName, r_Player2.PlayerName);
                     m_GameOver = false;
-                    m_CurrentPlayer = r_Player1.PlayerColor == eColor.Black ? r_Player1 : r_Player2;
+                    m_CurrentPlayer = r_Player1.PlayerColor == Player.eColor.Black ? r_Player1 : r_Player2;
                     m_PlayerLegalMove = findLegalMoves(m_CurrentPlayer);
                 }
             }
@@ -197,8 +185,9 @@ Bye-Bye :)");
             List<Cell> capturbaleCells = new List<Cell>();
             int row = i_Cell.Row + i_RowOffSet;
             int col = i_Cell.Col + i_ColOffSet;
+            bool capturableCellsFound = false;
 
-            while(isInsideBoard(row, col) && m_GameBoard.Cells[row, col].CurrentColor != eColor.None)
+            while (isInsideBoard(row, col) && m_GameBoard.Cells[row, col].CurrentColor != Player.eColor.None)
             {
                 if (m_GameBoard.Cells[row, col].CurrentColor == OpponentPlayerColor(i_Player.PlayerColor))
                 {
@@ -208,28 +197,29 @@ Bye-Bye :)");
                 }
                 else
                 {
-                    return capturbaleCells;
+                    capturableCellsFound = true;
+                    break;
                 }
             }
-            
-            return new List<Cell>();
+
+            return capturableCellsFound ? capturbaleCells : new List<Cell>();
         }
         
-        public static eColor OpponentPlayerColor(eColor i_PlayerColor)
+        public static Player.eColor OpponentPlayerColor(Player.eColor i_PlayerColor)
         {
             switch (i_PlayerColor)
             {
-                case eColor.White:
+                case Player.eColor.White:
                     {
-                        return eColor.Black;
+                        return Player.eColor.Black;
                     }
-                case eColor.Black:
+                case Player.eColor.Black:
                     {
-                        return eColor.White;
+                        return Player.eColor.White;
                     }
             }
 
-            return eColor.None;
+            return Player.eColor.None;
         }
         
         private List<Cell> capturbaleCells(Cell i_Cell, Player i_Player)
@@ -253,7 +243,7 @@ Bye-Bye :)");
 
         private bool isMoveLegal(Player i_Player, Cell i_Cell, out List<Cell> o_CapturbaleCells)
         {
-            if(m_GameBoard.Cells[i_Cell.Row, i_Cell.Col].CurrentColor != eColor.None)
+            if(m_GameBoard.Cells[i_Cell.Row, i_Cell.Col].CurrentColor != Player.eColor.None)
             {
                 o_CapturbaleCells = null;
                 return false;
@@ -279,12 +269,12 @@ Bye-Bye :)");
             string winnerName = "NO ONE :(";
             if (m_GameBoard.BlackCount > m_GameBoard.WhiteCount)
             {
-                winnerName = r_Player1.PlayerColor == eColor.Black ? r_Player1.PlayerName : r_Player2.PlayerName;
+                winnerName = r_Player1.PlayerColor == Player.eColor.Black ? r_Player1.PlayerName : r_Player2.PlayerName;
             }
 
             if(m_GameBoard.WhiteCount > m_GameBoard.BlackCount)
             {
-                winnerName = r_Player1.PlayerColor == eColor.White ? r_Player1.PlayerName : r_Player2.PlayerName;
+                winnerName = r_Player1.PlayerColor == Player.eColor.White ? r_Player1.PlayerName : r_Player2.PlayerName;
             }
 
             return  winnerName;
@@ -398,6 +388,37 @@ Please enter your move (Number for Row and then Letter for Col):");
             playerMove = playerMove.ToUpper();
 
             return playerMove;
+        }
+
+        public int GetValidBoardSize()
+        {
+            int boardSizeInput;
+            Console.WriteLine(@"Please choose the board size:
+press 6 for 6x6 or 8 for 8x8 :");
+            string inputString = Console.ReadLine();
+            while (!int.TryParse(inputString, out boardSizeInput) || (boardSizeInput != 6) && (boardSizeInput != 8))
+            {
+                Console.WriteLine("Invalid input, please try again.... press 6 for 6x6 or 8 for 8x8 :");
+                inputString = Console.ReadLine();
+            }
+            Console.Clear();
+            return boardSizeInput;
+        }
+
+        private string setPlayerName()
+        {
+
+            Console.WriteLine("Please enter your name: ");
+            string playerName = Console.ReadLine();
+
+            while (playerName.Length <= 0 || playerName.Length > 30)
+            {
+                Console.WriteLine(@"Error: name must be at list one characters and no longer than 30 characters,
+Please try again");
+                playerName = Console.ReadLine();
+            }
+            Console.Clear();
+            return playerName;
         }
     }
 }
